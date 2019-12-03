@@ -6860,6 +6860,16 @@ QualType ASTReader::readTypeRecord(unsigned Index) {
     return Context.getPipeType(ElementType, ReadOnly);
   }
 
+  case TYPE_TAINT: {
+    if (Record.size() != 2) {
+      Error("incorrect encoding of taint type");
+      return QualType();
+    }
+    QualType BaseType = readType(*Loc.F, Record, Idx);
+    std::string Annotation = ReadString(Record, Idx);
+    return Context.getTaitType(BaseType, Annotation);
+  }
+  
   case TYPE_DEPENDENT_SIZED_VECTOR: {
     unsigned Idx = 0;
     QualType ElementType = readType(*Loc.F, Record, Idx);
@@ -7244,6 +7254,10 @@ void TypeLocReader::VisitAtomicTypeLoc(AtomicTypeLoc TL) {
 
 void TypeLocReader::VisitPipeTypeLoc(PipeTypeLoc TL) {
   TL.setKWLoc(ReadSourceLocation());
+}
+
+void TypeLocReader::VisitTaintTypeLoc(TaintTypeLoc TL) {
+  TL.setAnnotationLoc(ReadSourceLocation(Record, Idx));
 }
 
 void ASTReader::ReadTypeLoc(ModuleFile &F, const ASTReader::RecordData &Record,

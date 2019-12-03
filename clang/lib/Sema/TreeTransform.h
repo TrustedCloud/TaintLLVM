@@ -1165,6 +1165,10 @@ public:
   QualType RebuildPipeType(QualType ValueType, SourceLocation KWLoc,
                            bool isReadPipe);
 
+  /// \brief Build a new annotated type given its underlying type and
+  /// annotation.
+  QualType RebuildTaintType(QualType BaseType, StringRef Annotation);
+
   /// Build a new template name given a nested name specifier, a flag
   /// indicating whether the "template" keyword was provided, and the template
   /// that the template name refers to.
@@ -5968,6 +5972,29 @@ QualType TreeTransform<Derived>::TransformPipeType(TypeLocBuilder &TLB,
 
   PipeTypeLoc NewTL = TLB.push<PipeTypeLoc>(Result);
   NewTL.setKWLoc(TL.getKWLoc());
+
+  return Result;
+}
+
+template<typename Derived>
+QualType TreeTransform<Derived>::TransformTaintType(TypeLocBuilder &TLB,
+                                                        TaintTypeLoc TL) {
+  const TaintType *oldType = TL.getTypePtr();
+  QualType BaseType = getDerived().TransformType(TLB, TL.getBaseLoc());
+  if (BaseType.isNull())
+    return QualType();
+
+  QualType Result = TL.getType();
+  if (getDerived().AlwaysRebuild() ||
+      BaseType != TL.getBaseLoc().getType()) {
+    Result = getDerived().RebuildTaintType(BaseType,
+                                               oldType->getAnnotation());
+    if (Result.isNull())
+      return QualType();
+  }
+
+  TaintTypeLoc NewTL = TLB.push<TaintTypeLoc>(Result);
+  NewTL.setAnnotationLoc(TL.getAnnotationLoc());
 
   return Result;
 }
@@ -13150,6 +13177,12 @@ QualType TreeTransform<Derived>::RebuildPipeType(QualType ValueType,
                                                  bool isReadPipe) {
   return isReadPipe ? SemaRef.BuildReadPipeType(ValueType, KWLoc)
                     : SemaRef.BuildWritePipeType(ValueType, KWLoc);
+}
+
+template<typename Derived>
+QualType TreeTransform<Derived>::RebuildTaintType(QualType BaseType,
+                                                      StringRef Annotation) {
+  return SemaRef.Context.getTaintType(BaseType, Annotation);
 }
 
 template<typename Derived>

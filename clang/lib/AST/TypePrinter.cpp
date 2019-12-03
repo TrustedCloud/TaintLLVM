@@ -260,6 +260,7 @@ bool TypePrinter::canPrefixQualifiers(const Type *T,
     case Type::PackExpansion:
     case Type::SubstTemplateTypeParm:
     case Type::MacroQualified:
+    case Type::Taint:
       CanPrefixQualifiers = false;
       break;
 
@@ -1104,6 +1105,16 @@ void TypePrinter::printPipeBefore(const PipeType *T, raw_ostream &OS) {
 }
 
 void TypePrinter::printPipeAfter(const PipeType *T, raw_ostream &OS) {}
+
+void TypePrinter::printTaintBefore(const TaintType *T,
+                                       raw_ostream &OS) {
+  print(T->getBaseType(), OS, StringRef());
+  OS << " __attribute__((taint_type(\"" << T->getAnnotation() << "\")))";
+  spaceBeforePlaceHolder(OS);
+}
+
+void TypePrinter::printTaintAfter(const TaintType *T,
+                                      raw_ostream &OS) { }
 
 /// Appends the given scope to the end of a string.
 void TypePrinter::AppendScope(DeclContext *DC, raw_ostream &OS) {

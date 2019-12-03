@@ -3460,3 +3460,9 @@ def NoBuiltin : Attr {
   let Subjects = SubjectList<[Function]>;
   let Documentation = [NoBuiltinDocs];
 }
+
+def TaintType : TypeAttr {
+  let Spellings = [GNU<"taint_annotate">];
+  let Args = [StringArgument<"Annotation">];
+  let Documentation = [Undocumented];
+}

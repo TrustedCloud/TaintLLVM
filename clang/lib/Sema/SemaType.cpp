@@ -5437,6 +5437,15 @@ static void fillAttributedTypeLoc(AttributedTypeLoc TL,
   TL.setAttr(State.takeAttrForAttributedType(TL.getTypePtr()));
 }
 
+static void fillTaintTypeLoc(TaintTypeLoc TL,
+                                 const AttributeList *attrs) {
+  assert(attrs->getNumArgs() == 1 && "must have argument");
+  Expr *expr = static_cast<Expr *>(attrs->getArgAsExpr(0));
+  StringLiteral *literal = dyn_cast<StringLiteral>(expr);
+  assert(literal && "argument must be string literal");
+  TL.setAnnotationLoc(literal->getLocStart());
+}
+
 namespace {
   class TypeSpecLocFiller : public TypeLocVisitor<TypeSpecLocFiller> {
     ASTContext &Context;
@@ -5604,6 +5613,11 @@ namespace {
       TL.getValueLoc().initializeFullCopy(TInfo->getTypeLoc());
     }
 
+    void VisitTaintTypeLoc(TaintTypeLoc TL) {
+      fillTaintTypeLoc(TL, DS.getAttributes().getList());
+      Visit(TL.getBaseLoc());
+    }
+
     void VisitTypeLoc(TypeLoc TL) {
       // FIXME: add other typespec types and change this to an assert.
       TL.initialize(Context, DS.getTypeSpecTypeLoc());
@@ -5732,6 +5746,9 @@ namespace {
     }
     void VisitMacroQualifiedTypeLoc(MacroQualifiedTypeLoc TL) {
       TL.setExpansionLoc(Chunk.Loc);
+    }
+    void VisitTaintTypeLoc(TaintTypeLoc TL) {
+      fillTaintTypeLoc(TL, Chunk.getAttrs());
     }
 
     void VisitTypeLoc(TypeLoc TL) {
@@ -7403,6 +7420,26 @@ static void HandleLifetimeBoundAttr(TypeProcessingState &State,
   }
 }
 
+static void HandleTaintTypeAttr(QualType& CurType,
+                                   const ParsedAttr &Attr, Sema &S) {
+  if (Attr.getNumArgs() != 1) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_wrong_number_arguments)
+      << Attr.getAttrName() << 1;
+    Attr.setInvalid();
+    return;
+  }
+
+  Expr *expr = static_cast<Expr *>(Attr.getArgAsExpr(0));
+  StringLiteral *literal = dyn_cast<StringLiteral>(expr);
+  if (literal == 0 || literal->isWide()) {
+    S.Diag(Attr.getLoc(), diag::err_attribute_argument_type)
+      << Attr.getAttrName() << AANT_ArgumentString
+      << expr->getSourceRange();
+    return;
+  }
+
+  CurType = S.Context.getTaintType(CurType, literal->getString());
+}
 
 static void processTypeAttrs(TypeProcessingState &state, QualType &type,
                              TypeAttrLocation TAL,
@@ -7507,6 +7544,10 @@ static void processTypeAttrs(TypeProcessingState &state, QualType &type,
     case ParsedAttr::AT_NeonPolyVectorType:
       HandleNeonVectorTypeAttr(type, attr, state.getSema(),
                                VectorType::NeonPolyVector);
+      attr.setUsedAsTypeAttr();
+      break;
+    case ParsedAttr::AT_TaintType:
+      HandleTaintTypeAttr(type, attr, state.getSema());
       attr.setUsedAsTypeAttr();
       break;
     case ParsedAttr::AT_OpenCLAccess:

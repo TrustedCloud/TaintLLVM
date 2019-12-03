@@ -2202,6 +2202,10 @@ TypeInfo ASTContext::getTypeInfoImpl(const Type *T) const {
     Width = Target->getPointerWidth(getTargetAddressSpace(LangAS::opencl_global));
     Align = Target->getPointerAlign(getTargetAddressSpace(LangAS::opencl_global));
     break;
+
+  case Type::Taint:
+    return getTypeInfo(cast<TaintType>(T)->getBaseType().getTypePtr());
+
   }
 
   assert(llvm::isPowerOf2_32(Align) && "Alignment must be power of 2");
@@ -5050,6 +5054,25 @@ QualType ASTContext::getAtomicType(QualType T) const {
   AtomicTypes.InsertNode(New, InsertPos);
   return QualType(New, 0);
 }
+
+/// getTaintType - Return the uniqued reference to the taint type
+/// for a given base type and annotation.
+QualType ASTContext::getTaintType(QualType T, StringRef A) const {
+  llvm::FoldingSetNodeID ID;
+  TaintType::Profile(ID, T, A);
+
+  void *InsertPos = nullptr;
+  if (TaintType *AT = TaintTypes.FindNodeOrInsertPos(ID, InsertPos))
+    return QualType(AT, 0);
+
+  QualType Canonical = getCanonicalType(T);
+  TaintType *New =
+      new (*this, TypeAlignment) TaintType(T, A, Canonical);
+  Types.push_back(New);
+  TaintTypes.InsertNode(New, InsertPos);
+  return QualType(New, 0);
+}
+
 
 /// getAutoDeductType - Get type pattern for deducing against 'auto'.
 QualType ASTContext::getAutoDeductType() const {

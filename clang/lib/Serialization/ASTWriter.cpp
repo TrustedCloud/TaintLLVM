@@ -582,6 +582,13 @@ ASTTypeWriter::VisitPipeType(const PipeType *T) {
   Code = TYPE_PIPE;
 }
 
+void
+ASTTypeWriter::VisitTaintType(const TaintType *T) {
+  Writer.AddTypeRef(T->getBaseType(), Record);
+  Writer.AddString(T->getAnnotation(), Record);
+  Code = TYPE_TAINT;
+}
+
 namespace {
 
 class TypeLocWriter : public TypeLocVisitor<TypeLocWriter> {
@@ -874,6 +881,10 @@ void TypeLocWriter::VisitAtomicTypeLoc(AtomicTypeLoc TL) {
 
 void TypeLocWriter::VisitPipeTypeLoc(PipeTypeLoc TL) {
   Record.AddSourceLocation(TL.getKWLoc());
+}
+
+void TypeLocWriter::VisitTaintTypeLoc(TaintTypeLoc TL) {
+  Record.AddSourceLocation(TL.getAnnotationLoc());
 }
 
 void ASTWriter::WriteTypeAbbrevs() {
@@ -1240,6 +1251,7 @@ void ASTWriter::WriteBlockInfoBlock() {
   RECORD(TYPE_AUTO);
   RECORD(TYPE_UNARY_TRANSFORM);
   RECORD(TYPE_ATOMIC);
+  RECORD(TYPE_TAINT);
   RECORD(TYPE_DECAYED);
   RECORD(TYPE_ADJUSTED);
   RECORD(TYPE_OBJC_TYPE_PARAM);

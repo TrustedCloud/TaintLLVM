@@ -935,6 +935,12 @@ static bool IsStructurallyEquivalent(StructuralEquivalenceContext &Context,
                                   cast<PipeType>(T2)->getElementType()))
       return false;
     break;
+
+  case Type::Taint:
+    if (!IsStructurallyEquivalent(Context, cast<TaintType>(T1)->getBaseType(),
+                                  cast<TaintType>(T2)->getBaseType()))
+      return false;
+    break;
   } // end switch
 
   return true;
