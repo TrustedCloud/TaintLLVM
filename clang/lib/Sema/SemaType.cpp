@@ -5438,12 +5438,12 @@ static void fillAttributedTypeLoc(AttributedTypeLoc TL,
 }
 
 static void fillTaintTypeLoc(TaintTypeLoc TL,
-                                 const AttributeList *attrs) {
-  assert(attrs->getNumArgs() == 1 && "must have argument");
-  Expr *expr = static_cast<Expr *>(attrs->getArgAsExpr(0));
+                                 const ParsedAttr &attrs) {
+  assert(attrs.getNumArgs() == 1 && "must have argument");
+  Expr *expr = static_cast<Expr *>(attrs.getArgAsExpr(0));
   StringLiteral *literal = dyn_cast<StringLiteral>(expr);
   assert(literal && "argument must be string literal");
-  TL.setAnnotationLoc(literal->getLocStart());
+  TL.setAnnotationLoc(literal->getBeginLoc());
 }
 
 namespace {
@@ -5614,7 +5614,8 @@ namespace {
     }
 
     void VisitTaintTypeLoc(TaintTypeLoc TL) {
-      fillTaintTypeLoc(TL, DS.getAttributes().getList());
+      //fillTaintTypeLoc(TL, DS.getAttributes());
+      TL.setAnnotationLoc(DS.getTypeSpecTypeLoc());
       Visit(TL.getBaseLoc());
     }
 
@@ -5748,7 +5749,8 @@ namespace {
       TL.setExpansionLoc(Chunk.Loc);
     }
     void VisitTaintTypeLoc(TaintTypeLoc TL) {
-      fillTaintTypeLoc(TL, Chunk.getAttrs());
+      //fillTaintTypeLoc(TL, Chunk.getAttrs());
+      TL.setAnnotationLoc(Chunk.Loc);
     }
 
     void VisitTypeLoc(TypeLoc TL) {

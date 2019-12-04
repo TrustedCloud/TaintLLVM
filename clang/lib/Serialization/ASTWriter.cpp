@@ -584,8 +584,8 @@ ASTTypeWriter::VisitPipeType(const PipeType *T) {
 
 void
 ASTTypeWriter::VisitTaintType(const TaintType *T) {
-  Writer.AddTypeRef(T->getBaseType(), Record);
-  Writer.AddString(T->getAnnotation(), Record);
+  Record.AddTypeRef(T->getBaseType());
+  Record.AddString(T->getAnnotation());
   Code = TYPE_TAINT;
 }
 

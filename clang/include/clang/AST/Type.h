@@ -6078,7 +6078,7 @@ public:
 
 class TaintType : public Type, public llvm::FoldingSetNode {
   QualType BaseType;
-  std::string Annotation;
+  StringRef Annotation;
 
   TaintType(QualType BaseTy, StringRef Ann, QualType Canonical)
     : Type(Taint, Canonical, BaseTy->isDependentType(),

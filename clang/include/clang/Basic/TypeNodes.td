@@ -102,4 +102,4 @@ def ObjCInterfaceType : TypeNode<ObjCObjectType>, LeafType;
 def ObjCObjectPointerType : TypeNode<Type>;
 def PipeType : TypeNode<Type>;
 def AtomicType : TypeNode<Type>;
-def TaintType : TypeNode<Type>;
+def TaintType : TypeNode<Type>, NeverCanonical;

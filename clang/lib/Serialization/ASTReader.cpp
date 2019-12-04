@@ -6867,7 +6867,7 @@ QualType ASTReader::readTypeRecord(unsigned Index) {
     }
     QualType BaseType = readType(*Loc.F, Record, Idx);
     std::string Annotation = ReadString(Record, Idx);
-    return Context.getTaitType(BaseType, Annotation);
+    return Context.getTaintType(BaseType, Annotation);
   }
   
   case TYPE_DEPENDENT_SIZED_VECTOR: {
@@ -7257,7 +7257,7 @@ void TypeLocReader::VisitPipeTypeLoc(PipeTypeLoc TL) {
 }
 
 void TypeLocReader::VisitTaintTypeLoc(TaintTypeLoc TL) {
-  TL.setAnnotationLoc(ReadSourceLocation(Record, Idx));
+  TL.setAnnotationLoc(ReadSourceLocation());
 }
 
 void ASTReader::ReadTypeLoc(ModuleFile &F, const ASTReader::RecordData &Record,

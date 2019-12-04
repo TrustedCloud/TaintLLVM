@@ -2333,6 +2333,39 @@ inline T TypeLoc::getAsAdjusted() const {
   return Cur.getAs<T>();
 }
 
+struct TaintTypeLocInfo {
+  SourceLocation AnnotationLoc;
+};
+
+class TaintTypeLoc : public ConcreteTypeLoc<UnqualTypeLoc,
+                                                TaintTypeLoc,
+                                                TaintType,
+                                                TaintTypeLocInfo> {
+public:
+  TypeLoc getBaseLoc() const {
+    return this->getInnerTypeLoc();
+  }
+
+  SourceLocation getAnnotationLoc() const {
+    return this->getLocalData()->AnnotationLoc;
+  }
+  void setAnnotationLoc(SourceLocation Loc) {
+    this->getLocalData()->AnnotationLoc = Loc;
+  }
+
+  SourceRange getLocalSourceRange() const {
+    return SourceRange(getAnnotationLoc(), getAnnotationLoc());
+  }
+
+  void initializeLocal(ASTContext &Context, SourceLocation Loc) {
+    setAnnotationLoc(Loc);
+  }
+
+  QualType getInnerType() const {
+    return this->getTypePtr()->getBaseType();
+  }
+};
+
 } // namespace clang
 
 #endif // LLVM_CLANG_AST_TYPELOC_H
