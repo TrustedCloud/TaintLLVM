@@ -2911,6 +2911,10 @@ static QualType UnwrapTypeForDebugInfo(QualType T, const ASTContext &C) {
     case Type::SubstTemplateTypeParm:
       T = cast<SubstTemplateTypeParmType>(T)->getReplacementType();
       break;
+    case Type::Taint:
+      T = cast<TaintType>(T)->getBaseType();
+      break;
+
     case Type::Auto:
     case Type::DeducedTemplateSpecialization: {
       QualType DT = cast<DeducedType>(T)->getDeducedType();
@@ -3101,6 +3105,7 @@ llvm::DIType *CGDebugInfo::CreateTypeNode(QualType Ty, llvm::DIFile *Unit) {
   case Type::Decltype:
   case Type::UnaryTransform:
   case Type::PackExpansion:
+  case Type::Taint:
     break;
   }
 

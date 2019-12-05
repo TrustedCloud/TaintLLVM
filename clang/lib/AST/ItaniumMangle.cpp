@@ -2001,6 +2001,7 @@ bool CXXNameMangler::mangleUnresolvedTypeOrSimpleId(QualType Ty,
   case Type::Atomic:
   case Type::Pipe:
   case Type::MacroQualified:
+  case Type::Taint:
     llvm_unreachable("type is illegal as a nested name specifier");
 
   case Type::SubstTemplateTypeParmPack:

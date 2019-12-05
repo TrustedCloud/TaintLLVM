@@ -1525,6 +1525,7 @@ void TypePrinter::printAttributedAfter(const AttributedType *T,
   case attr::SPtr:
   case attr::UPtr:
   case attr::AddressSpace:
+  case attr::TaintType:
     llvm_unreachable("This attribute should have been handled already");
 
   case attr::NSReturnsRetained:
