@@ -40,6 +40,7 @@ add_clang_library(clangFrontend
   PrintPreprocessedOutput.cpp
   SerializedDiagnosticPrinter.cpp
   SerializedDiagnosticReader.cpp
+  TaintTypeChecking.cpp
   TestModuleFileExtension.cpp
   TextDiagnostic.cpp
   TextDiagnosticBuffer.cpp
